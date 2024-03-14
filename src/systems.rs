@@ -1,5 +1,6 @@
 use bevy::app::AppExit;
 use bevy::{prelude::*, window::PrimaryWindow};
+use rand::{thread_rng, Rng};
 
 use crate::components::*;
 use crate::events::*;
@@ -42,9 +43,15 @@ pub fn spawn_enemies(
 ) {
     let window = window_query.get_single().unwrap();
 
-    for _ in 0..10 {
+    let mut rng = thread_rng();
+
+    for _ in 0..10000 {
         let random_x = rand::random::<f32>() * window.width();
         let random_y = rand::random::<f32>() * window.height();
+
+        // random direction between -1 and 1
+
+        let direction = Vec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0));
 
         commands.spawn((
             SpriteBundle {
@@ -52,9 +59,7 @@ pub fn spawn_enemies(
                 texture: asset_server.load("sprites/characters/tile_0024.png"),
                 ..default()
             },
-            Enemy {
-                direction: Vec2::new(rand::random::<f32>(), rand::random::<f32>()),
-            },
+            Enemy { direction },
         ));
     }
 }

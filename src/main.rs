@@ -4,7 +4,16 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_systems(Startup, (spawn_camera, spawn_player, spawn_enemies))
-        .add_systems(Update, (player_movement, confine_player))
+        .add_systems(
+            Update,
+            (
+                player_movement,
+                confine_player,
+                enemies_movement,
+                update_enemy_direction,
+                enemy_hit_player,
+            ),
+        )
         .run();
 }
 
@@ -12,7 +21,9 @@ fn main() {
 pub struct Player {}
 
 #[derive(Component)]
-pub struct Enemy {}
+pub struct Enemy {
+    direction: Vec2,
+}
 
 pub fn spawn_player(
     mut commands: Commands,
@@ -38,7 +49,7 @@ pub fn spawn_enemies(
 ) {
     let window = window_query.get_single().unwrap();
 
-    for _ in 0..10 {
+    for _ in 0..1000 {
         let random_x = rand::random::<f32>() * window.width();
         let random_y = rand::random::<f32>() * window.height();
 
@@ -48,7 +59,9 @@ pub fn spawn_enemies(
                 texture: asset_server.load("sprites/characters/tile_0024.png"),
                 ..default()
             },
-            Enemy {},
+            Enemy {
+                direction: Vec2::new(rand::random::<f32>(), rand::random::<f32>()),
+            },
         ));
     }
 }
@@ -112,6 +125,58 @@ pub fn confine_player(
         }
         if transform.translation.y > window.height() {
             transform.translation.y = window.height();
+        }
+    }
+}
+
+pub fn enemies_movement(mut enemy_query: Query<(&mut Transform, &Enemy)>, time: Res<Time>) {
+    for (mut transform, enemy) in enemy_query.iter_mut() {
+        let direction = Vec3::new(enemy.direction.x, enemy.direction.y, 0.0);
+        transform.translation += direction.normalize() * 100.0 * time.delta_seconds();
+    }
+}
+
+pub fn update_enemy_direction(
+    mut enemy_query: Query<(&mut Enemy, &Transform)>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+) {
+    let window = window_query.get_single().unwrap();
+
+    for (mut enemy, transform) in enemy_query.iter_mut() {
+        if transform.translation.x < 0.0 || transform.translation.x > window.width() {
+            enemy.direction.x *= -1.0;
+        }
+        if transform.translation.y < 0.0 || transform.translation.y > window.height() {
+            enemy.direction.y *= -1.0;
+        }
+    }
+}
+
+pub fn enemy_hit_player(
+    mut commands: Commands,
+    mut player_query: Query<(Entity, &Transform), With<Player>>,
+    enemy_query: Query<&Transform, With<Enemy>>,
+    asset_server: Res<AssetServer>,
+) {
+    if let Ok((player_entity, player_transform)) = player_query.get_single_mut() {
+        for enemy_transform in enemy_query.iter() {
+            let distance = player_transform
+                .translation
+                .distance(enemy_transform.translation);
+            let player_radius = 24.0 / 2.0;
+            let enemy_radius = 24.0 / 2.0;
+
+            if distance < player_radius + enemy_radius {
+                commands.spawn((SpriteBundle {
+                    transform: Transform::from_xyz(
+                        player_transform.translation.x,
+                        player_transform.translation.y,
+                        0.0,
+                    ),
+                    texture: asset_server.load("sprites/characters/tile_0000.png"),
+                    ..default()
+                },));
+            }
         }
     }
 }

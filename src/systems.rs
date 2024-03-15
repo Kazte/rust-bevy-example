@@ -12,6 +12,7 @@ pub const ENEMY_SPEED: f32 = 100.0;
 pub const ENEMY_RADIUS: f32 = 22.0 / 2.0;
 pub const NUMBER_OF_STARS: u8 = 10;
 pub const STAR_RADIUS: f32 = 22.0 / 2.0;
+pub const TITLE: &str = "My First Bevy Game";
 
 pub fn restart_game(keyboard_input: Res<ButtonInput<KeyCode>>) {
     if keyboard_input.just_pressed(KeyCode::KeyR) {
@@ -153,10 +154,16 @@ pub fn confine_player(
     }
 }
 
-pub fn enemies_movement(mut enemy_query: Query<(&mut Transform, &Enemy)>, time: Res<Time>) {
-    for (mut transform, enemy) in enemy_query.iter_mut() {
-        let direction = Vec3::new(enemy.direction.x, enemy.direction.y, 0.0);
-        transform.translation += direction.normalize() * ENEMY_SPEED * time.delta_seconds();
+pub fn enemies_movement(
+    mut enemy_query: Query<(&mut Transform, &Enemy)>,
+    time: Res<Time>,
+    game_over: ResMut<GameOver>,
+) {
+    if game_over.value == false {
+        for (mut transform, enemy) in enemy_query.iter_mut() {
+            let direction = Vec3::new(enemy.direction.x, enemy.direction.y, 0.0);
+            transform.translation += direction.normalize() * ENEMY_SPEED * time.delta_seconds();
+        }
     }
 }
 
@@ -237,8 +244,12 @@ pub fn player_hit_star(
     }
 }
 
-pub fn update_score(score: Res<Score>) {
+pub fn update_score(score: Res<Score>, mut window_query: Query<&mut Window, With<PrimaryWindow>>) {
     if score.is_changed() {
+        let mut window = window_query.get_single_mut().unwrap();
+
+        window.title = format!("{} - Score: {}", TITLE, score.value.to_string());
+
         println!("Score: {}", score.value.to_string());
     }
 }
@@ -246,9 +257,9 @@ pub fn update_score(score: Res<Score>) {
 pub fn tick_spawn_timer_star(
     mut star_spawn_timer: ResMut<StarSpawnTimer>,
     time: Res<Time>,
-    mut game_over_event_reader: EventReader<GameOverEvent>,
+    game_over: ResMut<GameOver>,
 ) {
-    if game_over_event_reader.read().next().is_none() {
+    if game_over.value == false {
         star_spawn_timer.timer.tick(time.delta());
     }
 }
@@ -278,9 +289,9 @@ pub fn spawn_star_overtime(
 pub fn tick_spawn_timer_enemy(
     mut enemy_spawn_timer: ResMut<EnemySpawnTimer>,
     time: Res<Time>,
-    mut game_over_event_reader: EventReader<GameOverEvent>,
+    game_over: ResMut<GameOver>,
 ) {
-    if game_over_event_reader.read().next().is_none() {
+    if game_over.value == false {
         enemy_spawn_timer.timer.tick(time.delta());
     }
 }
@@ -318,9 +329,13 @@ pub fn exit_game(
     }
 }
 
-pub fn handle_game_over(mut game_over_event_reader: EventReader<GameOverEvent>) {
+pub fn handle_game_over(
+    mut game_over_event_reader: EventReader<GameOverEvent>,
+    mut game_over: ResMut<GameOver>,
+) {
     for event in game_over_event_reader.read() {
         println!("Game Over! Score: {}", event.score);
+        game_over.value = true;
     }
 }
 

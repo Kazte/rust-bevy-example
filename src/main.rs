@@ -27,6 +27,7 @@ fn main() {
         .init_resource::<StarSpawnTimer>()
         .init_resource::<HighScore>()
         .init_resource::<EnemySpawnTimer>()
+        .init_resource::<GameOver>()
         .add_event::<GameOverEvent>()
         .add_systems(
             Startup,

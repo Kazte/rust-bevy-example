@@ -1,7 +1,7 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use rand::{thread_rng, Rng};
 
-use crate::{player::components::Player, GameOver};
+use crate::{core::resources::GameOver, player::components::Player};
 
 use super::{components::*, resources::EnemySpawnTimer};
 

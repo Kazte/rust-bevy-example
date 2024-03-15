@@ -1,6 +1,6 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::GameOver;
+use crate::core::resources::GameOver;
 
 use super::{components::Star, resources::StarSpawnTimer};
 

@@ -1,10 +1,10 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::{
+    core::events::GameOverEvent,
     enemy::components::Enemy,
     score::resources::Score,
     star::{components::Star, systems::STAR_RADIUS},
-    GameOverEvent,
 };
 
 use super::components::Player;

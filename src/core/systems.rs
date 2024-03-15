@@ -1,9 +1,9 @@
 use bevy::app::AppExit;
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::events::*;
-use crate::resources::*;
 use crate::score::resources::HighScore;
+
+use super::{GameOver, GameOverEvent};
 
 pub fn restart_game(keyboard_input: Res<ButtonInput<KeyCode>>) {
     if keyboard_input.just_pressed(KeyCode::KeyR) {

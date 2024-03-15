@@ -49,6 +49,11 @@ pub fn spawn_enemies(
     for _ in 0..10 {
         let random_x = rand::random::<f32>() * window.width();
         let random_y = rand::random::<f32>() * window.height();
+        let mut enemy_type: EnemyTypeEnum = EnemyTypeEnum::Chaser;
+
+        if rand::random::<f32>() > 0.5 {
+            enemy_type = EnemyTypeEnum::Wanderer;
+        }
 
         // random direction between -1 and 1
 
@@ -60,7 +65,11 @@ pub fn spawn_enemies(
                 texture: asset_server.load("sprites/characters/tile_0024.png"),
                 ..default()
             },
-            Enemy { direction },
+            Enemy {
+                direction,
+                speed: ENEMY_SPEED,
+                enemy_type,
+            },
         ));
     }
 }
@@ -155,14 +164,33 @@ pub fn confine_player(
 }
 
 pub fn enemies_movement(
-    mut enemy_query: Query<(&mut Transform, &Enemy)>,
+    mut set: ParamSet<(
+        Query<(&mut Transform, &Enemy), With<Enemy>>,
+        Query<&Transform, With<Player>>,
+    )>,
     time: Res<Time>,
     game_over: ResMut<GameOver>,
 ) {
     if game_over.value == false {
-        for (mut transform, enemy) in enemy_query.iter_mut() {
-            let direction = Vec3::new(enemy.direction.x, enemy.direction.y, 0.0);
-            transform.translation += direction.normalize() * ENEMY_SPEED * time.delta_seconds();
+        let mut player_position: Vec3 = Vec3::new(0.0, 0.0, 0.0);
+
+        if let Ok(player_transform) = set.p1().get_single() {
+            player_position = player_transform.translation;
+        }
+
+        for (mut transform, entity) in set.p0().iter_mut() {
+            match entity.enemy_type {
+                EnemyTypeEnum::Wanderer => {
+                    let direction = Vec3::new(entity.direction.x, entity.direction.y, 0.0);
+                    transform.translation +=
+                        direction.normalize() * ENEMY_SPEED * time.delta_seconds();
+                }
+                EnemyTypeEnum::Chaser => {
+                    let direction = player_position - transform.translation;
+                    transform.translation +=
+                        direction.normalize() * ENEMY_SPEED * time.delta_seconds();
+                }
+            }
         }
     }
 }
@@ -306,6 +334,15 @@ pub fn spawn_enemy_overtime(
         let window = window_query.get_single().unwrap();
         let random_x = rand::random::<f32>() * window.width();
         let random_y = rand::random::<f32>() * window.height();
+        let mut enemy_type: EnemyTypeEnum = EnemyTypeEnum::Chaser;
+
+        if rand::random::<f32>() > 0.5 {
+            enemy_type = EnemyTypeEnum::Wanderer;
+        }
+
+        // random direction between -1 and 1
+        let mut rng = thread_rng();
+        let direction = Vec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0));
 
         commands.spawn((
             SpriteBundle {
@@ -314,7 +351,9 @@ pub fn spawn_enemy_overtime(
                 ..default()
             },
             Enemy {
-                direction: Vec2::new(rand::random::<f32>(), rand::random::<f32>()),
+                direction,
+                speed: ENEMY_SPEED,
+                enemy_type,
             },
         ));
     }

@@ -45,7 +45,7 @@ pub fn spawn_enemies(
 
     let mut rng = thread_rng();
 
-    for _ in 0..10000 {
+    for _ in 0..10 {
         let random_x = rand::random::<f32>() * window.width();
         let random_y = rand::random::<f32>() * window.height();
 

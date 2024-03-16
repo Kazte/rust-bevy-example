@@ -1,7 +1,7 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 use rand::{thread_rng, Rng};
 
-use crate::{core::resources::GameOver, player::components::Player};
+use crate::game::{core::resources::GameOver, player::components::Player};
 
 use super::{components::*, resources::EnemySpawnTimer};
 
@@ -17,7 +17,7 @@ pub fn spawn_enemies(
 
     let mut rng = thread_rng();
 
-    for _ in 0..10 {
+    for _ in 0..5 {
         let random_x = rand::random::<f32>() * window.width();
         let random_y = rand::random::<f32>() * window.height();
         let mut enemy_type: EnemyTypeEnum = EnemyTypeEnum::Chaser;
@@ -141,5 +141,11 @@ pub fn spawn_enemy_overtime(
                 enemy_type,
             },
         ));
+    }
+}
+
+pub fn despawn_enemies(mut commands: Commands, query: Query<Entity, With<Enemy>>) {
+    for query in query.iter() {
+        commands.entity(query).despawn();
     }
 }

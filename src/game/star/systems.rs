@@ -1,6 +1,6 @@
 use bevy::{prelude::*, window::PrimaryWindow};
 
-use crate::core::resources::GameOver;
+use crate::game::core::resources::GameOver;
 
 use super::{components::Star, resources::StarSpawnTimer};
 
@@ -26,6 +26,12 @@ pub fn spawn_stars(
             },
             Star {},
         ));
+    }
+}
+
+pub fn despawn_stars(mut commands: Commands, query: Query<Entity, With<Star>>) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn();
     }
 }
 

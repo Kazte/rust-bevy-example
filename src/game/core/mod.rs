@@ -2,11 +2,12 @@ use bevy::prelude::*;
 
 pub mod events;
 pub mod resources;
-mod systems;
+pub mod systems;
 
 use events::*;
 use resources::*;
 use systems::*;
+
 pub struct CorePlugin;
 
 impl Plugin for CorePlugin {
@@ -22,6 +23,8 @@ impl Plugin for CorePlugin {
                     handle_game_over,
                     update_highscore,
                     higscores_updated,
+                    transition_to_game_state,
+                    transition_to_main_menu_state,
                 ),
             );
     }

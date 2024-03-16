@@ -2,6 +2,7 @@ use bevy::app::AppExit;
 use bevy::{prelude::*, window::PrimaryWindow};
 
 use crate::game::score::resources::HighScore;
+use crate::game::SimulationState;
 use crate::AppState;
 
 use super::{GameOver, GameOverEvent};
@@ -40,21 +41,6 @@ pub fn handle_game_over(
     }
 }
 
-pub fn update_highscore(
-    mut game_over_event_reader: EventReader<GameOverEvent>,
-    mut high_scores: ResMut<HighScore>,
-) {
-    for event in game_over_event_reader.read() {
-        high_scores.scores.push(("Player".to_string(), event.score));
-    }
-}
-
-pub fn higscores_updated(high_scores: Res<HighScore>) {
-    if high_scores.is_changed() {
-        println!("Highscores: {:?}", high_scores.scores);
-    }
-}
-
 pub fn transition_to_game_state(
     mut commands: Commands,
     keyboard_input: Res<ButtonInput<KeyCode>>,
@@ -78,6 +64,7 @@ pub fn transition_to_main_menu_state(
         let current_state = app_state.get().clone();
         if current_state != AppState::MainMenu {
             commands.insert_resource(NextState(Some(AppState::MainMenu)));
+            commands.insert_resource(NextState(Some(SimulationState::Paused)));
             println!("Transitioning to MainMenu state")
         }
     }

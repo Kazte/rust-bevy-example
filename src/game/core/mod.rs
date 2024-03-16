@@ -21,8 +21,6 @@ impl Plugin for CorePlugin {
                     restart_game,
                     exit_game,
                     handle_game_over,
-                    update_highscore,
-                    higscores_updated,
                     transition_to_game_state,
                     transition_to_main_menu_state,
                 ),
